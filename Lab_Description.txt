@@ -1,0 +1,16 @@
+Hello Ivan,
+
+The lab I will be using for this course is a virtual lab built in GNS3. My host running Ansible/Python/Git is a Centos7 VM also running in GNS3.
+
+I will be running the following network devices in the lab:
+- Cisco IOS (VIRL images)
+- Cisco NX-OS (VIRL images)
+- Palo Alto VM-100
+- Cisco ISE (if I have the resources to run it)
+
+Specific topologies and problems that I'm planning on developing automation solutions for include:
+- Generic configuration templates for routers and switches
+- Wired 802.1x troubleshooting and deployment
+- DMVPN deployment and modification (changing encryption keys, Phase 1+2 crypto-maps, etc.)
+- Cisco IOS zone-based firewall configuration deployments and data-gathering
+- Management of Palo Alto configurations and data-gathering via their XML API
