@@ -1,0 +1,48 @@
+{%- for reservation in zbfw.dhcpReservation %}
+ip dhcp pool {{reservation.name}}
+host {{reservation.IP}} 255.255.255.0
+client-identifier {{reservation.MAC}}
+{% endfor %}
+
+{%- for groups in zbfw.networkGroups %}
+object-group network {{groups.name}}
+description {{groups.description}}
+{%- for def in groups.networks %}
+{{def.network}}
+{%- endfor %}
+{% endfor %}
+
+{% for groups in zbfw.serviceGroups -%}
+object-group service {{groups.name}}
+description {{groups.description}}
+{% for services in groups.service -%}
+{{services.protocol}} eq {{services.port}}
+{% endfor %}
+{% endfor -%}
+
+{% for acl in zbfw.accessList -%}
+ip access-list extended ACL_{{acl['sourceZone'].upper()}}_TO_{{acl['destinationZone'].upper()}}
+{% for line in acl.lines -%}
+{% if line['action'].upper() == "REMARK" -%}
+{{line.action}} {{line.remark}}
+{%- else -%}
+{{line.action}} object-group {{line.serviceGroup}} object-group {{line.sourceGroup}} object-group {{line.destinationGroup}}
+{%- endif %}
+{% endfor %}
+{% endfor -%}
+
+{% for acl in zbfw.accessList -%}
+{% if acl['new'] %}
+Class-map type inspect match-any CM-{{acl['sourceZone'].upper()}}_TO_{{acl['destinationZone'].upper()}}
+Match access-group name ACL_{{acl['sourceZone'].upper()}}_TO_{{acl['destinationZone'].upper()}}
+
+Policy-map type inspect PM-{{acl['sourceZone'].upper()}}_TO_{{acl['destinationZone'].upper()}}
+Class type inspect CM-{{acl['sourceZone'].upper()}}_TO_{{acl['destinationZone'].upper()}}
+Inspect
+class class-default
+Drop log
+
+Zone-pair security {{acl['sourceZone'].upper()}}-TO-{{acl['destinationZone'].upper()}}  source {{acl['sourceZone'].upper()}} destination {{acl['destinationZone'].upper()}}
+Service-policy type inspect PM-{{acl['sourceZone'].upper()}}_TO_{{acl['destinationZone'].upper()}}
+{%- endif %}
+{% endfor -%}

@@ -1,0 +1,63 @@
+hostname: Example ZBFW Config
+
+#Define any necessary DHCP reservations
+
+#Note that the MAC address must be prepended with '01' to signifiy an ethernet address.
+#e.g. - aaaa.aaaa.aaaa becomes 01aa.aaaa.aaaa.aa
+dhcpReservation:
+   - Pool:
+     name: Pool 1
+     IP: 172.16.4.1
+     MAC: 0100.aaaa.aaaa.aa
+   - Pool:
+     name: Pool 2
+     IP: 172.16.4.2
+     MAC: 0100.bbbb.bbbb.bb
+
+#Define any necessary network object groups
+networkGroups:
+   - Group:
+     name: DOOR_SYSTEM
+     description: Door System
+     networks:
+     - network: 172.16.4.1 /32
+     - network: 172.16.4.2 /32
+   - Group:
+     name: DOOR_SYSTEM_SERVER
+     description: Door System Software Running on PC 
+     networks:
+     - network: 10.10.10.102 /32
+
+#Define any necessary service object groups
+serviceGroups:
+   - Group:
+     name: DOOR_SERVICES
+     description: Services for Door System
+     service:
+      - protocol: tcp
+        port: 22
+      - protocol: udp
+        port: 53
+
+#Define ACLs in the following format
+#Remarks (comments) are optional but highly recommended
+
+#Setting "new" to "true" signifies that the ACL does not already exist on the router,
+#which will trigger the creation of a corresponding class-map, policy-map, and zone-pair.
+#Setting "new" to "false" will only create ACL line entries
+accessList:
+   - ACL:
+     new: True
+     sourceZone: INSIDE
+     destinationZone: 3RD-PARTY-UNMANAGED
+     lines:
+     - action: remark
+       remark: Allow Access from Door Security System Controllers
+     - action: permit
+       serviceGroup:  DOOR_SERVICES
+       sourceGroup: DOOR_SYSTEM_SERVER
+       destinationGroup: DOOR_SYSTEM
+     - action: deny
+       serviceGroup:  EXAMPLE
+       sourceGroup: EXAMPLE
+       destinationGroup: EXAMPLE
